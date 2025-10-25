@@ -1,0 +1,77 @@
+# Загальні файли та папки, які ігнорують зазвичай
+# -----------------------------------------------------------------------
+
+# Операційна система та системні файли
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Python / Віртуальні середовища
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv
+venv/
+env/
+/bin/
+/include/
+/lib/
+/share/
+
+# Build артефакти
+dist/
+build/
+*.egg-info/
+.eggs/
+
+# IDE та редактори
+# PyCharm / IntelliJ
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# VS Code
+.vscode/
+
+# Jupyter Notebook / IPython
+.ipynb_checkpoints
+*~
+._*
+
+# Логи та тимчасові файли
+*.log
+*.tmp
+temp/
+tmp/
+
+# Машинне навчання та Data Science
+# -----------------------------------------------------------------------
+
+# Папки для великих наборів даних (якщо вони не є частиною репозиторію)
+data/
+datasets/
+raw_data/
+processed_data/
+
+# Файли моделей (зазвичай великі, краще зберігати в іншому місці або використовувати DVC)
+*.pkl
+*.joblib
+*.h5
+*.hdf5
+*.model
+*.pth # PyTorch
+*.pt # PyTorch
+*.keras # Keras
+*.tf # TensorFlow SavedModel
+
+# Результати експериментів та візуалізації
+results/
+models/
+output/
+plots/
+images/
+figures/
+tensorboard/
+runs/ # MLOps/Logger outputs (e.g., MLflow, ClearML, W&B)
