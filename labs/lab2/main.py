@@ -1,76 +1,55 @@
-import pandas as pd
+"""Refactored runner for Lab 2.
+
+This script uses the small helper modules in the same package so the
+logic is importable from other labs (e.g. lab3).
+"""
+
+from pathlib import Path
 import numpy as np
+import pandas as pd
 
-from sklearn.preprocessing import LabelEncoder, MinMaxScaler
-
-
-def load_data(file_path: str) -> pd.DataFrame:
-    """Load dataset from a CSV file."""
-    return pd.read_csv(file_path)
+from .data import load_data, fill_missing_values
+from .preprocessing import encode_categorical_features, scale_numerical_features
+from .storage import save_to_sqlite
 
 
-def fill_missing_values(df: pd.DataFrame) -> pd.DataFrame:
-    """Fill missing values in the DataFrame."""
-    for col in df.columns:
-        if df[col].isnull().sum() > 0:
-            if df[col].dtype == "object":
-                # if data type is object, fill with mode
-                df[col].fillna(df[col].mode()[0], inplace=True)
-            else:
-                # if data type is numeric, fill with median
-                df[col].fillna(df[col].median(), inplace=True)
+def add_random_timestamp(df: pd.DataFrame, year: int = 2025) -> pd.DataFrame:
+    """Add a `timestamp` column filled with random dates inside given year.
+
+    Returns the same DataFrame with a new `timestamp` column.
+    """
+    start_date = pd.to_datetime(f"{year}-01-01")
+    end_date = pd.to_datetime(f"{year}-12-31")
+
+    n = len(df)
+    # pandas.Timestamp.value is in ns; convert to seconds for randint
+    low = int(start_date.value // 10**9)
+    high = int(end_date.value // 10**9)
+    random_dates = pd.to_datetime(np.random.randint(low, high + 1, n), unit="s")
+    df["timestamp"] = random_dates
     return df
 
 
-def encode_categorical_features(df: pd.DataFrame) -> pd.DataFrame:
-    """Encode categorical features using Label Encoding."""
-    label_encoders = {}
-    for col in df.select_dtypes(include=["object"]).columns:
-        le = LabelEncoder()
-        df[col] = le.fit_transform(df[col])
-        label_encoders[col] = le
-    return df
+def run_lab2(
+    csv_path: str = "./data/csv/ObesityDataSet_raw_and_data_sinthetic.csv",
+    db_path: str = "./data/db/obesity_data_processed.db",
+):
+    csv_path = Path(csv_path)
+    db_path = Path(db_path)
 
+    data = load_data(str(csv_path))
+    data = fill_missing_values(data)
+    data = encode_categorical_features(data)
+    data = scale_numerical_features(data)
+    data = add_random_timestamp(data, year=2025)
 
-def scale_numerical_features(df: pd.DataFrame) -> pd.DataFrame:
-    """Scale numerical features using Min-Max Scaling."""
-    scaler = MinMaxScaler()
+    # Show head
+    print(data.head())
 
-    scaled_columns = df.select_dtypes(include=["int64", "float64"]).columns
-    df[scaled_columns] = scaler.fit_transform(df[scaled_columns])
-
-    return df
+    # Ensure parent dir exists for DB
+    db_path.parent.mkdir(parents=True, exist_ok=True)
+    save_to_sqlite(data, str(db_path), table_name="obesity_data_processed", if_exists="replace", index=False)
 
 
 if __name__ == "__main__":
-    # Load the dataset
-    data = load_data("./data/csv/ObesityDataSet_raw_and_data_sinthetic.csv")
-
-    # Fill missing values
-    data = fill_missing_values(data)
-
-    # Encode categorical features
-    data = encode_categorical_features(data)
-
-    # Scale numerical features
-    data = scale_numerical_features(data)
-
-    # Add a timestamp column with random dates in 2025
-    start_date = pd.to_datetime("2025-01-01")
-    end_date = pd.to_datetime("2025-12-31")
-
-    n = len(data)
-    random_dates = pd.to_datetime(
-        np.random.randint(start_date.value // 10**9, end_date.value // 10**9, n),
-        unit="s",
-    )
-    data["timestamp"] = random_dates
-
-    # Display the first few rows of the processed DataFrame
-    print(data.head())
-
-    # Save the processed DataFrame to a database
-    import sqlite3
-    conn = sqlite3.connect("./data/db/obesity_data_processed.db")
-    data.to_sql("obesity_data_processed", conn, if_exists="replace", index=False)
-    conn.close()
+    run_lab2()
