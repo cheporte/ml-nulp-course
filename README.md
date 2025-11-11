@@ -13,7 +13,7 @@ Key components include:
 ### **1. Clone the Repository**
 
 ```bash
-git clone https://github.com/cheporte/ml-nulp-course.git
+git clone https://github.com/noqtisnox/ml-nulp-course.git
 cd ml-nulp-course
 ```
 
